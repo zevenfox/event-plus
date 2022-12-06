@@ -3,6 +3,9 @@ import calendar
 from calendar import HTMLCalendar
 from datetime import datetime, timedelta
 from django.utils.timezone import get_current_timezone
+from django.http import HttpResponseRedirect
+from .models import *
+from .form import VenueForm
 
 # Create your views here.
 
@@ -17,3 +20,21 @@ def home(request,year=datetime.now().year,month=datetime.now().strftime('%B')):
     now = datetime.now(get_current_timezone())
     time = now.strftime("%H:%M %d %b %Y")
     return render(request, 'event/home.html',{"name":name,"year":year, "month":month, "month_number":month_number, "cal":cal, "time":time})
+
+def all_events(request):
+    events_list = Event.objects.all()
+    return render(request, 'event/event_list.html', {"events_list":events_list})
+
+def add_venue(request):
+    submitted =False
+    if request.method == "POST":
+        form = VenueForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return VenueForm(HttpResponseRedirect('/add_venue?submitted=True'))
+    else:
+            form = VenueForm
+            if 'submitted'in request.GET:
+                submitted = True
+    return render(request, 'event/add_venue.html', {'form':form, 'submitted':submitted})
+
